@@ -1,13 +1,20 @@
+# app.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import pandas as pd
 import traceback
 
+# Import your feature extractor
+from url_extractor import FeatureExtractor  # adjust if class name differs
+
 app = Flask(__name__)
 CORS(app)  # Allow cross-origin requests (adjust origins in production)
 
-# Load model bundle (expects {"model": ..., "features": [...]} )
+# -------------------------------
+# Load model bundle
+# -------------------------------
 BUNDLE_PATH = "rf_phishing_model.pkl"
 try:
     bundle = joblib.load(BUNDLE_PATH)
@@ -19,26 +26,24 @@ except Exception as e:
     model = None
     FEATURES = []
 
+# -------------------------------
+# Feature extraction wrapper
+# -------------------------------
 def extract_features_from_url(url: str):
     """
-    Template extractor. **MUST** be updated to match the exact features used during training.
-    The function returns a dict mapping feature name -> value for every feature in FEATURES.
+    Uses url_extractor.py to compute the same features used for model training.
+    Returns a dict mapping feature name -> value for every feature in FEATURES.
     """
-    # Basic example features — expand/replace to match your pipeline:
-    parsed = url or ""
-    feats = {
-        "url_length": len(parsed),
-        "having_at_symbol": 1 if "@" in parsed else 0,
-        "having_ip": 1 if any(part.isdigit() for part in parsed.split("/")[2:3]) else 0,
-        "count_dots": parsed.count("."),
-        "count_hyphens": parsed.count("-"),
-        # add placeholders for other features your model expects
-    }
+    fe = FeatureExtractor(url)
+    feats = fe.get_features()  # should return a dict with all features
 
-    # Ensure all FEATURES are present; missing features default to 0
+    # Align features in the same order as the model
     aligned = {f: feats.get(f, 0) for f in FEATURES}
     return aligned
 
+# -------------------------------
+# Routes
+# -------------------------------
 @app.route("/")
 def index():
     return jsonify({"status": "Phishing detection API is running"}), 200
@@ -55,24 +60,26 @@ def predict():
             return jsonify({"error": "No URL provided"}), 400
 
         feats = extract_features_from_url(url)
-        # Create dataframe with one row in the same feature order the model expects
         X = pd.DataFrame([[feats[f] for f in FEATURES]], columns=FEATURES)
 
-        pred = model.predict(X)[0]
+        pred = int(model.predict(X)[0])
         proba = None
         if hasattr(model, "predict_proba"):
             proba = float(model.predict_proba(X)[0][1])
 
         return jsonify({
             "url": url,
-            "prediction": int(pred),
+            "prediction": pred,
             "probability": proba,
-            "message": "Phishing 🚨" if int(pred) == 1 else "Safe ✅"
+            "message": "Phishing 🚨" if pred == 1 else "Safe ✅"
         }), 200
 
     except Exception as e:
         tb = traceback.format_exc()
         return jsonify({"error": str(e), "trace": tb}), 500
 
+# -------------------------------
+# Run server
+# -------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
