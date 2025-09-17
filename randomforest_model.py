@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import joblib
 
 # ---------- CONFIG ----------
-INPUT_CSV = r"small_sample.csv"        # CSV with features (+ label if training)
+INPUT_CSV = r"testing_data.csv"        # CSV with features (and label if training)
 OUTPUT_MODEL = "rf_phishing_model.pkl"
 OUTPUT_RESULTS = "rf_results.csv"
 RANDOM_STATE = 42
@@ -24,12 +24,11 @@ TRAIN_MODE = 'label' in df.columns
 
 if TRAIN_MODE:
     print("Training mode detected: label column found.")
-
+    
     # Clean dataset
     df = df.dropna(subset=['label'])
     df['label'] = df['label'].astype(int)
 
-    # Separate features and labels
     X = df.drop(columns=["url", "label"], errors="ignore")
     y = df["label"]
 
@@ -52,7 +51,7 @@ if TRAIN_MODE:
     joblib.dump(bundle, OUTPUT_MODEL)
     print("Model trained and saved to", OUTPUT_MODEL)
 
-    # Predictions on test set
+    # Predictions
     y_pred = rf.predict(X_test)
     y_proba = rf.predict_proba(X_test)[:, 1]
 
@@ -64,36 +63,32 @@ if TRAIN_MODE:
     print(f"F1 Score: {f1_score(y_test, y_pred, zero_division=0):.3f}")
     print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 
-    # Build results DataFrame for test set
-    results = pd.DataFrame({
-        "url": urls_test.values if urls_test is not None else range(len(y_pred)),
-        "true_label": y_test.values,
-        "predicted_label": y_pred,
-        "phishing_probability": y_proba
-    })
-
 else:
     print("Deployment mode detected: no label column found.")
-
+    
     # Load pre-trained model
     bundle = joblib.load(OUTPUT_MODEL)
     rf = bundle["model"]
     features = bundle["features"]
     print("Loaded pre-trained model for deployment.")
 
-    # Features only
+    # Only use features from CSV
     X = df[features]
 
-    # Predict on full dataset
+    # Predict
     y_pred = rf.predict(X)
     y_proba = rf.predict_proba(X)[:, 1]
 
-    # Build results DataFrame
-    results = pd.DataFrame({
-        "url": urls.values if urls is not None else range(len(y_pred)),
-        "predicted_label": y_pred,
-        "phishing_probability": y_proba
-    })
+# Build results DataFrame
+results = pd.DataFrame({
+    "url": urls.values if urls is not None else range(len(y_pred)),
+    "predicted_label": y_pred,
+    "phishing_probability": y_proba
+})
+
+# Include true labels if available (training mode)
+if TRAIN_MODE and 'y_test' in locals():
+    results["true_label"] = y_test.values
 
 # Save results
 results.to_csv(OUTPUT_RESULTS, index=False)
