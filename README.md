@@ -38,6 +38,10 @@ How It Works:
         Probability of phishing (%)
         Probability of legitimate (%)
         Overall confidence (%)
+To run the program:
+download all the files as given in the repo
+and run app.py
+and click the link generated
         
 
 
