@@ -2,10 +2,9 @@ This repository contains a machine learning algorithm specifically random forest
 
 Control Flow :
   1. The user inputs a url into the website
-  2. The website through the api calls the url_extractor module
-  3. The url_erxtractor module creates an output CSV file which is taken as the input of the algorithm
-  4. The algorithm then produces an (filler) output
-  5. The output is returned to the website to be displayed
+  2. The website through the flask api calls the randomforest model and the url_extractor
+  3. After the model evaluates the url it returns a confidence score back to the website
+  4. The website displays the confidence score as a percentage bar
 
 The url_extractor module takes the given url and checks if the url contains:
 | Column Name             | Meaning                                         |
@@ -21,8 +20,7 @@ The url_extractor module takes the given url and checks if the url contains:
 | `https_token`           | 1 if HTTPS is present, 0 otherwise              |
 | `port`                  | 1 if non-standard port used, 0 otherwise        |
 | `ssl_final_state`       | 1 if SSL certificate valid, 0 otherwise         |
-| `dns_record`            | 1 if DNS record exists, 0 otherwise             |
-| `ssl_certificate`       | 1 if SSL certificate exists, 0 otherwise        |
-| `label`                 | Target: 1 = phishing, 0 = legitimate            |
+| `dns_record`            | 1 if DNS record exists, 0 otherwise             |       
+
 
 
