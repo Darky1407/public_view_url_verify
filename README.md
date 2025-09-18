@@ -7,20 +7,23 @@ Control Flow :
   4. The website displays the confidence score as a percentage bar
 
 The url_extractor module takes the given url and checks if the url contains:
-| Column Name             | Meaning                                         |
-| ----------------------- | ----------------------------------------------- |
-| `url`                   | The website URL itself                          |
-| `having_ip`             | 1 if URL contains an IP address, 0 otherwise    |
-| `url_length`            | Length of the URL                               |
-| `shortening_service`    | 1 if URL uses a shortening service, 0 otherwise |
-| `having_at_symbol`      | 1 if `@` appears in URL, 0 otherwise            |
-| `double_slash_redirect` | 1 if `//` appears after protocol, 0 otherwise   |
-| `prefix_suffix`         | 1 if URL has `-` in domain, 0 otherwise         |
-| `having_sub_domain`     | 1 if URL has subdomain, 0 otherwise             |
-| `https_token`           | 1 if HTTPS is present, 0 otherwise              |
-| `port`                  | 1 if non-standard port used, 0 otherwise        |
-| `ssl_final_state`       | 1 if SSL certificate valid, 0 otherwise         |
-| `dns_record`            | 1 if DNS record exists, 0 otherwise             |       
+| **Feature**                 | **What it Checks**                                                |
+| --------------------------- | ----------------------------------------------------------------- |
+| having_ip                   | Whether the URL contains an IP address instead of a domain        |
+| url_length                  | The total length of the URL                                       |
+| shortening_service          | If the URL uses a shortening service (like bit.ly, tinyurl, etc.) |
+| having_at_symbol            | Whether the URL contains an `@` symbol                            |
+| double_slash_redirect       | If there’s an extra `//` after the protocol                       |
+| prefix_suffix               | Whether the domain name contains a hyphen (`-`)                   |
+| having_sub_domain           | If the URL has multiple subdomains (other than `www`)             |
+| https_token                 | Whether the domain part contains the word “https”                 |
+| port                        | If the URL uses an uncommon port (not 80 or 443)                  |
+| ssl_final_state             | Whether the URL uses HTTPS (`0`) or HTTP (`1`)                    |
+| dns_record                  | If the domain has a valid DNS record                              |
+| ssl_certificate             | Placeholder feature (currently always `0` in your code)           |
+
+Random Forest is a machine learning algorithm that works by combining the power of many decision trees. A decision tree is like a flowchart that asks yes/no questions about the data (for example, “Is the URL length greater than 50?”). On its own, a single tree might make mistakes or overfit, but Random Forest builds many such trees on different random parts of the data and features. Each tree gives its own “vote” for the prediction, and the forest takes the majority vote (for classification) or the average (for regression). By using randomness and combining many trees, Random Forest reduces errors, avoids overfitting, and gives more stable and accurate results. It’s called “random” because it randomly picks data samples and features for each tree, and “forest” because it grows many trees together to make a stronger, smarter predictor.
+    
 
 
 
